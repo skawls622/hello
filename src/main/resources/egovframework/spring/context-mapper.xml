@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd">
+
+	<!-- SqlSession setup for MyBatis Database Layer -->
+	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+        <property name="databaseIdProvider" ref="databaseIdProvider" />
+		<property name="configLocation" value="classpath:/egovframework/sqlmap/example/sql-mapper-config.xml" />
+		<property name="mapperLocations" value="classpath:/egovframework/sqlmap/example/mappers/*.xml" />
+	</bean>
+
+	<!-- MapperConfigurer setup for MyBatis Database Layer with @Mapper("deptMapper") in DeptMapper Interface -->
+ 	<bean class="org.egovframe.rte.psl.dataaccess.mapper.MapperConfigurer">
+		<property name="basePackage" value="egovframework.example.sample.service.impl" />
+	</bean>
+    
+    <!-- JDBC 메타데이터에서 DB 종류를 판별하여 DB별 페이징 SQL을 선택한다. -->
+    <bean id="databaseIdProvider" class="org.apache.ibatis.mapping.VendorDatabaseIdProvider">
+        <property name="properties">
+            <props>
+                <prop key="MySQL">mysql</prop>
+                <prop key="MariaDB">mariadb</prop>
+                <prop key="Oracle">oracle</prop>
+            </props>
+        </property>
+    </bean>
+</beans>

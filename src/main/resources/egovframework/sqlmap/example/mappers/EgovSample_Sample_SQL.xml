@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.example.sample.service.impl.SampleMapper">
+    <resultMap id="sample" type="sampleVO">
+        <id property="id" column="ID"/>
+        <result property="name" column="NAME"/>
+        <result property="description" column="DESCRIPTION"/>
+        <result property="useYn" column="USE_YN"/>
+        <result property="regUser" column="REG_USER"/>
+    </resultMap>
+    <!-- 공통 SQL 조각: 목록과 건수 조회가 같은 검색 조건을 사용한다. -->
+    <sql id="sampleColumns">ID, NAME, DESCRIPTION, USE_YN, REG_USER</sql>
+    <sql id="sampleSearchWhere">
+        <where>
+            <choose>
+                <when test='"2".equals(searchCondition)'>
+                    <if test="searchId != null and searchId.trim() != ''">
+                        <bind name="idPattern" value="'%' + searchId.trim() + '%'"/>
+                        AND ID LIKE #{idPattern,jdbcType=VARCHAR}
+                    </if>
+                    <if test="searchName != null and searchName.trim() != ''">
+                        <bind name="namePattern" value="'%' + searchName.trim() + '%'"/>
+                        AND NAME LIKE #{namePattern,jdbcType=VARCHAR}
+                    </if>
+                </when>
+                <otherwise>
+                    <if test="searchKeyword != null and searchKeyword.trim() != ''">
+                        <bind name="keywordPattern" value="'%' + searchKeyword.trim() + '%'"/>
+                        <choose>
+                            <when test='"0".equals(searchCondition)'>
+                                AND ID LIKE #{keywordPattern,jdbcType=VARCHAR}
+                            </when>
+                            <otherwise>
+                                AND NAME LIKE #{keywordPattern,jdbcType=VARCHAR}
+                            </otherwise>
+                        </choose>
+                    </if>
+                </otherwise>
+            </choose>
+        </where>
+    </sql>
+    <sql id="sampleListQuery">
+        SELECT <include refid="sampleColumns"/>
+        FROM SAMPLE
+        <include refid="sampleSearchWhere"/>
+        ORDER BY ID DESC
+    </sql>
+    <sql id="limitOffset">
+        LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </sql>
+    <insert id="insertSample" parameterType="sampleVO">
+        INSERT INTO SAMPLE (<include refid="sampleColumns"/>)
+        VALUES (#{id,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
+                #{description,jdbcType=VARCHAR}, #{useYn,jdbcType=CHAR}, #{regUser,jdbcType=VARCHAR})
+    </insert>
+    <update id="updateSample" parameterType="sampleVO">
+        UPDATE SAMPLE
+        SET NAME = #{name,jdbcType=VARCHAR}, DESCRIPTION = #{description,jdbcType=VARCHAR},
+            USE_YN = #{useYn,jdbcType=CHAR}
+        WHERE ID = #{id,jdbcType=VARCHAR}
+    </update>
+    <delete id="deleteSample" parameterType="sampleVO">
+        DELETE FROM SAMPLE WHERE ID = #{id,jdbcType=VARCHAR}
+    </delete>
+    <select id="selectSample" parameterType="sampleVO" resultMap="sample">
+        SELECT <include refid="sampleColumns"/>
+        FROM SAMPLE WHERE ID = #{id,jdbcType=VARCHAR}
+    </select>
+    <select id="selectSampleList" databaseId="mysql" parameterType="searchVO" resultMap="sample">
+        <include refid="sampleListQuery"/>
+        <include refid="limitOffset"/>
+    </select>
+    <select id="selectSampleList" databaseId="mariadb" parameterType="searchVO" resultMap="sample">
+        <include refid="sampleListQuery"/>
+        <include refid="limitOffset"/>
+    </select>
+    <select id="selectSampleList" databaseId="oracle" parameterType="searchVO" resultMap="sample">
+        <include refid="sampleListQuery"/>
+        OFFSET #{firstIndex} ROWS FETCH NEXT #{recordCountPerPage} ROWS ONLY
+    </select>
+    <select id="selectSampleListTotCnt" parameterType="searchVO" resultType="int">
+        SELECT COUNT(*) FROM SAMPLE
+        <include refid="sampleSearchWhere"/>
+    </select>
+</mapper>

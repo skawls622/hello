@@ -1,0 +1,4 @@
+jdbc.driver=com.mysql.jdbc.Driver
+jdbc.url=jdbc:mysql://127.0.0.1:13306/kosa_db?useUnicode=true&characterEncoding=UTF-8
+jdbc.username=scott
+jdbc.password=CHANGE_ME
